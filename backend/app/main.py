@@ -10,7 +10,15 @@ from .config import UPLOADS_DIR, GENERATED_DIR, MEDIA_DIR
 from .models import GenerateDesignResponse
 from .generator import build_gemini_instruction, call_gemini_for_prompt, refine_for_image_model
 from .tones import TONES, KANSEI_WORDS
-from .image_generator import generate_fashion_design
+
+# Optional import - only load when needed to avoid PyTorch DLL issues
+try:
+    from .image_generator import generate_fashion_design
+    IMAGE_GENERATION_AVAILABLE = True
+except Exception as e:
+    print(f"Warning: Image generation disabled. Error loading dependencies: {e}")
+    IMAGE_GENERATION_AVAILABLE = False
+    generate_fashion_design = None
 
 app = FastAPI(
     title="Fashion Emotion Design API",
@@ -61,26 +69,41 @@ async def generate_design(
         instruction = build_gemini_instruction(tones, kansei_words)
         gemini_prompt = call_gemini_for_prompt(instruction)
         llm_prompt = refine_for_image_model(gemini_prompt)
-    except RuntimeError as e:
-        # API key missing or other error
-        llm_prompt = f"Error generating prompt: {str(e)}"
+    except Exception as e:
+        # Handle various API errors
+        error_msg = str(e)
+        if "403" in error_msg or "PERMISSION_DENIED" in error_msg:
+            if "leaked" in error_msg.lower():
+                llm_prompt = "Gemini API Error: Your API key has been reported as leaked and disabled. Please generate a new API key from https://aistudio.google.com/apikey and update your .env file."
+            else:
+                llm_prompt = "Gemini API Error: Permission denied. Please check your API key has the correct permissions."
+        elif "API key" in error_msg or "GEMINI_API_KEY" in error_msg:
+            llm_prompt = "Gemini API Error: API key not configured. Please set GEMINI_API_KEY in your .env file."
+        else:
+            llm_prompt = f"Gemini API Error: {error_msg}"
+        print(f"Gemini error: {error_msg}")
 
     # 3. Generate image using Stable Diffusion + ControlNet with sketch + prompt
     generated_filename = f"generated_{sketch_id}.png"
     generated_path = GENERATED_DIR / generated_filename
     
-    try:
-        generate_fashion_design(
-            sketch_path=sketch_path,
-            prompt=llm_prompt,
-            output_path=generated_path,
-            num_inference_steps=20,
-            guidance_scale=7.5,
-            controlnet_conditioning_scale=1.0,
-        )
-    except Exception as e:
-        # Fallback: copy sketch if generation fails
-        print(f"Image generation failed: {e}")
+    if IMAGE_GENERATION_AVAILABLE:
+        try:
+            generate_fashion_design(
+                sketch_path=sketch_path,
+                prompt=llm_prompt,
+                output_path=generated_path,
+                num_inference_steps=20,
+                guidance_scale=7.5,
+                controlnet_conditioning_scale=1.0,
+            )
+        except Exception as e:
+            # Fallback: copy sketch if generation fails
+            print(f"Image generation failed: {e}")
+            shutil.copyfile(sketch_path, generated_path)
+    else:
+        # Image generation not available, just copy the sketch
+        print("Image generation unavailable - returning original sketch")
         shutil.copyfile(sketch_path, generated_path)
 
     # 4. Build URL for frontend
@@ -109,3 +132,14 @@ async def get_tones():
 async def health_check():
     """Health check endpoint."""
     return {"status": "healthy"}
+
+
+# Mount frontend static files LAST so API routes take precedence
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+FRONTEND_DIR = PROJECT_ROOT / "frontend"
+if FRONTEND_DIR.exists():
+    # Mount frontend at root so index.html is available at '/index.html' and '/'
+    app.mount("/", StaticFiles(directory=str(FRONTEND_DIR), html=True), name="frontend")
+else:
+    # If the frontend folder is missing, leave API-only behavior and log a message
+    print(f"Frontend directory not found at {FRONTEND_DIR}; serving API only.")

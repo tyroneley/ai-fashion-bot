@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Fashion Design Generator</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎨 AI Fashion Design Generator</h1>
+            <p class="subtitle">Transform your sketches into stunning fashion designs</p>
+        </header>
+
+        <main>
+            <div class="upload-section">
+                <div class="card">
+                    <h2>Upload Your Sketch</h2>
+                    <div class="upload-area" id="uploadArea">
+                        <input type="file" id="sketchInput" accept="image/*" hidden>
+                        <div class="upload-placeholder">
+                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                            <p>Click to upload or drag and drop</p>
+                            <span class="file-info">PNG, JPG, or JPEG (MAX. 10MB)</span>
+                        </div>
+                        <img id="previewImage" class="preview-image" style="display: none;">
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>Design Preferences</h2>
+                    
+                    <div class="form-group">
+                        <label>Select Tones (Maximum 3):</label>
+                        <div id="tonesContainer" class="checkbox-grid"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Select Kansei Words:</label>
+                        <div id="kanseiWordsContainer" class="checkbox-grid"></div>
+                    </div>
+
+                    <button id="generateBtn" class="btn-primary" disabled>
+                        <span class="btn-text">Generate Design</span>
+                        <span class="loader" style="display: none;"></span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="results-section" id="resultsSection" style="display: none;">
+                <div class="card">
+                    <h2>Generated Design</h2>
+                    <div class="image-comparison">
+                        <div class="comparison-item">
+                            <h3>Your Sketch</h3>
+                            <img id="originalSketch" alt="Original sketch">
+                        </div>
+                        <div class="comparison-arrow">→</div>
+                        <div class="comparison-item">
+                            <h3>AI Generated</h3>
+                            <img id="generatedImage" alt="Generated design">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>Generated Prompt</h2>
+                    <div class="prompt-display" id="promptDisplay"></div>
+                    <button class="btn-secondary" id="copyPromptBtn">Copy Prompt</button>
+                </div>
+
+                <div class="card">
+                    <h2>Technical Notes</h2>
+                    <div class="notes-display" id="notesDisplay"></div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>Powered by Stable Diffusion + ControlNet & Google Gemini</p>
+        </footer>
+    </div>
+
+    <div id="errorToast" class="toast error-toast" style="display: none;">
+        <span id="errorMessage"></span>
+        <button class="toast-close" onclick="hideError()">×</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

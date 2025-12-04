@@ -19,7 +19,7 @@ def build_gemini_instruction(selected_tones: List[str], selected_kansei: List[st
         f"Given the following selected tones: {tone_clause}. "
         f"And the following Kansei (sensory/feeling) keywords: {kansei_clause}. "
         "Produce a single, compact image-generation prompt (1-2 paragraphs, 2-4 sentences) "
-        "that an image model can use to create a CAD-style technical sketch of a fashion garment. "
+        "that an image model can use to create a CAD-style technical sketch of a fashion garment. If given an image, use the image as a reference."
         "Include: silhouette, garment type, material suggestions, notable construction details, "
         "stitching/topstitching, seam placement, recommended line weights, front/side/back views, "
         "a short palette, and any annotations/measurements that help a patternmaker. "
