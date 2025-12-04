@@ -1,2 +1,12 @@
 google-genai
 python-dotenv
+fastapi
+uvicorn[standard]
+python-multipart
+Pillow
+torch
+diffusers
+transformers
+accelerate
+controlnet_aux
+xformers
