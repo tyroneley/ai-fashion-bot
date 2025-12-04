@@ -1,2 +1,15 @@
+fastapi
+uvicorn[standard]
+python-multipart
+pydantic
 google-genai
 python-dotenv
+numpy<2.0
+torch
+torchvision
+diffusers
+transformers
+pillow
+controlnet-aux
+accelerate
+safetensors
